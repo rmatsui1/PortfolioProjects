@@ -1,0 +1,424 @@
+---
+title: 'DTSC 650: Data Analytics In R'
+subtitle: 'CodeGrade Final Project Part 2'
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+---
+
+## Student Info
+
+```         
+Name: Ryuei Matsui
+Term: Spring 2 
+Date: 04/07/24
+```
+
+------------------------------------------------------------------------
+
+## General Instructions
+
+------------------------------------------------------------------------
+
+### Name of File
+
+Name your assignment file **`BRFSS_Part2`**. This is a quarto "markdown" file, which has the extension ".qmd".
+
+------------------------------------------------------------------------
+
+### Instructions
+
+For the final section, you will choose four variables to explore in ways we have not in Q1-Q9. You will choose one of those four variables as the response variable and the other three as predictors. Be sure to read through all of the instructions for Q10-Q14 before choosing your 4 variables.
+
+We expect that you will choose 4 *different* variables than those covered in Part 1, Q1-9.
+
+Feel free to create multiple variables for Q12, Q13, and Q14, e.g. Q12a, Q12b, etc. Please make it clear, though, the distinction between each question/problem with comments, spacing, and new code chunks. If you use Q12a, b, etc., be sure to print the results by doing Q12a or print(Q12a). Your answers must be clearly identifiable.
+
+Take time to tidy your code once you are finished. The easier it is for us to understand, the more partial credit you could receive.
+
+------------------------------------------------------------------------
+
+### Allowable packages
+
+Allowable packages are `tidyverse`, `caret`, `Hmisc`, `lsr`, `olsrr`, `psych`, `lm.beta`.
+
+-   If the allowable packages are not installed on your local computer, you'll need to do a one-time installation *from the Console Window in RStudio* for each package like this:
+
+    **`install.packages('<package name>')`**
+
+    *Do not attempt to install packages in code that you submit to CodeGrade.*
+
+-   Note: installing the entire tidyverse with `install.packages('tidyverse')` from the Console Window will save you from having to install any of the tidyverse's individual packages in the future.
+
+-   In your code, load the package's library like this: **`library(<library name>)`**
+
+------------------------------------------------------------------------
+
+### Do / Do not
+
+-   Do use tidyverse functions (e.g., dplyr verbs) for all of the questions where possible.
+
+-   Do use The Pipe.
+
+-   Do use plenty of comments throughout your code chunks so that the grader can follow your line of thinking.
+
+-   Do use the "Q Discussion:" sections provided to explain your thinking and to answer the questions.
+
+-   Do not rearrange data frame outputs unless specified by the question instructions.
+
+-   Do not create multiple copies of the BRFSS dataset in your script. Creating too many copies of the dataset can cause CodeGrade to crash with *exit code -9*. If you see that error on your Practice Submission, please check for this.
+
+-   Do have integrity and submit your own work, not the work of a classmate, an online resource, or someone else.
+
+------------------------------------------------------------------------
+
+### Submission
+
+You only have ONE ATTEMPT to submit Part 2 to the ACTUAL submission link! On all the other assignments, you got multiple attempts; but not on this assignment.
+
+Ensure you are ready and confident in your work before submitting.
+
+------------------------------------------------------------------------
+
+### Data Set
+
+-   These data come from [Kaggle](https://www.kaggle.com/cdc/behavioral-risk-factor-surveillance-system).
+
+-   To answer these questions you will need to use the codebook on Brightspace, called `codebook15_llcp.pdf`. Please note that not all of the variables listed in the codebook are included in the .csv file to be downloaded from Brightspace.
+
+-   Download the `BRFSS2015_650.csv` file from Brightspace and place it in the same folder/directory as your script file. Then in RStudio, set your Working Directory to your Source File location: in the menus choose Session, Set Working Directory, To Source File Location. You most likely will see some warnings after it loads due to the fact that `read_csv()` will try to guess the column type but because there are so many rows it won't read enough of them to accurately make a guess.
+
+-   You must use the `read_csv()` function when loading the .csv file. Do not use `read.csv()`.
+
+-   Do not rename the .csv file that you download from Brightspace.
+
+-   Do not edit the .csv file.
+
+------------------------------------------------------------------------
+
+### Pipe Notation
+
+You may use the `tidyverse` pipe **`%>%`** or the new base R pipe **`|>`**. For a comparison, see [here](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/).
+
+You are expected to use pipe notation in all of the CodeGrade assignments. Although there are alternate ways to filter, subset, and summarize data sets, using the pipe creates more readable code and is an important skill to develop.
+
+------------------------------------------------------------------------
+
+### Comments vs. Discussion
+
+You should include both comments within your code chunk as well a discussion after each coded answer. Comments explain your code and your thought process; the discussion uses your code to answer the questions we've asked. We have provided "Q Discussion" sections for each question. Feel free to add more lines in the discussion section.
+
+You can also use markdown headers to organize your discussion and the outline. For more info on markdown, see [here](https://rmarkdown.rstudio.com/authoring_basics.html)
+
+------------------------------------------------------------------------
+
+## Questions and Coded Solutions
+
+------------------------------------------------------------------------
+
+### Preliminaries
+
+```{r}
+### It's always a good idea when working in RStudio to start with a clean environment. 
+
+### Clear objects from the environment memory that may be leftover from previous versions of your code or other assignments by running the following line:
+rm(list = ls())
+
+### Load the libraries you need
+
+library(tidyverse) 
+
+
+
+
+
+### Load the Data
+### Load the data file
+### Do not change this line
+brf <- read_csv("BRFSS2015_650.csv")
+
+```
+
+------------------------------------------------------------------------
+
+## Questions
+
+------------------------------------------------------------------------
+
+### Q10
+
+Address the values of each of the variables (use the codebook for this and include your answer as comments). For instance, is "none" equal to a value other than 0? Are there extra decimals implied? Are there other values that should be excluded based on the responses they represent? Which variable will you seek to predict from the other variables? Answer these questions in the *Q10 Discussion:* section below the code chunk. Update the dataset to account for these values for the remainder of the questions.
+
+```{r}
+### Do not edit the following line. It is used by CodeGrade.
+# CG Q10 # 
+
+### TYPE YOUR CODE BELOW ###
+brf
+#CIMEMLOS: Value 1 is yes for experiencing memory loss in the past 12 months. Value 2 is no. Anything else would not be needed for analysis
+mem <- brf%>%
+  filter(CIMEMLOS == 1 | CIMEMLOS == 2) 
+
+#ALCDAY5:The value for no drinks in the past 30 days is 888. Would have to convert that to zero. 
+brf$ALCDAY5[brf$ALCDAY5 == 888] <- 200
+
+alc <- brf %>%
+  filter(ALCDAY5 >= 200 & ALCDAY5 <= 299) %>%
+  mutate(new_alc = ALCDAY5 - 200)
+
+#SMOKE100: Has the respondent smoked at least 100 cigarettes in your life. Value 1 is yes. Value 2 is no. Anything else would not be needed for analysis. 
+smoke <- brf%>%
+  filter(SMOKE100 == 1 | SMOKE100 == 2)
+
+#FRUITJU1: The value to how many times per week has the respondent drank 100% pure fruit juices is 201-299. The value for no drinks is 555. Convert that to 200 to include in the analysis.
+brf$FRUITJU1[brf$FRUITJU1 == 555] <- 200
+
+fj <- brf %>%
+  filter(FRUITJU1 >= 200 & FRUITJU1 <= 299) %>%
+  mutate(new_juice = FRUITJU1 - 200) 
+
+
+```
+
+### Q10 Discussion:
+
+Your Q10 discussion goes here. Feel free to add more lines as needed.
+
+The response variable I have chosen for this analysis will be if the respondent has experienced confusion or memory loss within the last 12 months (CIMEMLOS). The predictor variables I have chosen is ALCDAY5, SMOKE100, and FRUITJU1. I believe each predictor will show significance to its response variable CIMEMLOS. I transformed the data by filtering out some attributes to keep only the ones needed for analysis.  
+
+
+### Q11
+
+Remove any outliers for each applicable variable. Make sure you are updating the dataset from Q10 and using this dataset for the remainder of the questions. Briefly explain why you chose the method you used in the *Q11 Discussion* section. Within your code chunk, provide comments explaining what your code is doing.
+
+```{r}
+### Do not edit the following line. It is used by CodeGrade.
+# CG Q11 # 
+
+### TYPE YOUR CODE BELOW ###
+#CIMEMLOS: Since we have already filtered out the unnecessary categories, there is no need for further action, since what we have left is binary variable.
+summary(mem)
+
+#ALCDAYS5: Checking to see any outliers using the boxplot function.
+alc %>%
+  ggplot(aes(x = ALCDAY5)) +
+  geom_boxplot()
+
+#We notice outliers. We use 1.5 IQR method since the data looks skewered.
+upper_fence <- quantile(alc$new_alc, 0.75) + (1.5 * IQR(alc$new_alc))
+lower_fence <- quantile(alc$new_alc, 0.25) - (1.5 * IQR(alc$new_alc))
+
+alc_iqr <- alc %>%
+  filter(
+    new_alc >= lower_fence,
+    new_alc  <= upper_fence)
+
+alc_iqr %>%
+  ggplot(aes(x = new_alc)) +
+  geom_boxplot()
+
+#We try 3SD for comparative analysis
+lower_bound <- quantile(alc, 0.0015, na.rm = TRUE)
+upper_bound <- quantile(alc, 0.9985, na.rm = TRUE)
+
+alc_3sd <- alc %>% 
+  filter(
+    new_alc >= lower_bound,
+    new_alc <= upper_bound)
+
+alc_3sd %>%
+  ggplot(aes(x = new_alc)) +
+  geom_boxplot()
+
+#SMOKE100: Binary variables, no action needed.
+summary(smoke)
+
+#FRUITJU1: We detect outliers using the boxplot function.  
+fj %>%
+  ggplot(aes(x = new_juice)) +
+  geom_boxplot()
+
+summary(fj)
+
+#We use 1.5 IQR since the data looks skewed
+upper_fence2 <- quantile(fj$new_juice, 0.75) + (1.5 * IQR(fj$new_juice))
+lower_fence2 <- quantile(fj$new_juice, 0.25) - (1.5 * IQR(fj$new_juice))
+
+fj_iqr <- fj %>%
+  filter(new_juice >= lower_fence2,
+         new_juice <= upper_fence2)
+
+#We try 3SD for comparative analysis
+lower_bound2 <- quantile(fj, 0.0015, na.rm = TRUE)
+upper_bound2 <- quantile(fj, 0.9985, na.rm = TRUE)
+
+fj_3sd <- fj %>% 
+  filter(
+    new_juice >= lower_bound2,
+    new_juice <= upper_bound2)
+
+fj_iqr %>%
+  ggplot(aes(x = new_juice)) +
+  geom_boxplot()
+
+
+```
+
+### Q11 Discussion:
+
+Your Q11 discussion goes here. Feel free to add more lines as needed.
+
+For binary variables CIMEMLOS and SMOKE100 there is no need to remove outliers. For ALCDAYS5 there seemed to be potential outliers from using the boxplot function. For the ALCDAY5 variable I first used the 1.5 IQR method since the data seemed to be skewed after looking at it using boxplot. I then used the 3SD method for comparative analysis. After using the method I conclude that we lose about 50,000 outliers using the IQR method and we lose 0 outliers using the 3SD method. 
+For the FRUITJU1 variable we use the IQR method because again the data is skewed. I also used the 3SD method as well. I found that we lose about 30,000 outliers using the IQR method and about 300 outliers using the 3SD method.
+Although I know I should go with the IDR method since both data is skewed, this method removes too many outliers and removing them might distort the conclusions from the data. Therefore, I will go with the 3SD method so I won't lose too much out on valid observations. 
+However, the FTUIJU1 variable had many unrealistic outliers such as 42 fruit juice drank in a week. Therefore, using the 3SD method was the way to go to remove outliers. 
+
+### Q12
+
+Complete exploratory analyses (for each variable) doing appropriate visualizations with ggplot2. Include visualizations that incorporate a combination of your variables within one plot. Provide an organized discussion of your observations for each of the plots in the *Q12 Discussion* section below.
+
+```{r}
+### Do not edit the following line. It is used by CodeGrade.
+# CG Q12 # 
+
+### TYPE YOUR CODE BELOW ###
+#Creating bar graph for CIMEMLOS 
+ggplot(mem, aes(x = CIMEMLOS)) + 
+  geom_bar(width = .5) +
+  labs(x = "Memory loss within the past year 1 = yes 2= no")
+
+#Creating histogram graph for ALCDAY5
+ggplot(alc_3sd, aes(x = new_alc)) + 
+  geom_histogram(binwidth = .5) +
+  labs(x = "How many days in a month drinking at least one alcholic beverage") 
+
+#Creating a bar graph for SMOKE100
+ggplot(smoke, aes(x = SMOKE100)) + 
+  geom_bar(width = .5) +
+  labs(x = "Smoking at least 100 cigarettes in your life 1 = yes 2 = no") 
+
+#Creating histogram graph for FRUITJU1
+ggplot(fj_iqr, aes(x = new_juice)) + 
+  geom_histogram(binwidth = .5) +
+  labs(x = "How many times per week drinking 100% pure fruit juice") 
+
+#Creating a plot with combination of variables
+plot <- brf %>%
+  filter(ALCDAY5 >= 200 & ALCDAY5 <= 299) %>%
+  filter(FRUITJU1 >= 200 & FRUITJU1 <= 299) %>%
+  filter(CIMEMLOS == 1 | CIMEMLOS == 2) %>%
+  mutate(new_juice = FRUITJU1 - 200) %>%
+  mutate(new_alc = ALCDAY5 - 200) 
+    
+
+ggplot(plot, aes(x = ALCDAY5, y = FRUITJU1)) + 
+  geom_point(aes(color = CIMEMLOS))
+
+```
+
+### Q12 Discussion:
+
+Your Q12 discussion goes here. Feel free to add more lines as needed.
+For variables CIMEMLOS and SMOKE100 because they are categorical variables I created a bar graph. I reduce the bin width to .5 to make the the graph easier to read and distinguish. 
+For variables ALCDAY5 and FRUITJU1 I created histogram graph since the data is quantitative. Using a histogram makes it easier to compare the many points that is enlisted in the data.  
+I then created a scatter plot using the geom_point function to compare the variables ALCDAY5, FRUITJU1, and CIMEMLOS. By creating the scatter plot I was able to see the correlation, setting the predictor variable color to blue. I was able to conclude that drinking fruit juice is not as impactful to memory loss as alcohol consumption does. 
+
+
+
+
+### Q13
+
+Run all of the appropriate basic descriptive statistics for each of your variables. What do these statistics reveal? Be sure to address each variable in the "Q13 Discussion" below.
+
+```{r}
+### Do not edit the following line. It is used by CodeGrade.
+# CG Q13 # 
+
+### TYPE YOUR CODE BELOW ###
+table(mem$CIMEMLOS) 
+12404/(103278+124404)
+summary(alc_3sd$new_alc)
+table(smoke$SMOKE100)
+184299/(239608 + 184299)
+summary(fj_3sd$new_juice)
+
+#Creating a correlation matrix
+brf %>%
+  filter(ALCDAY5 >= 200 & ALCDAY5 <= 299) %>%
+  filter(FRUITJU1 >= 200 & FRUITJU1 <= 299) %>%
+  filter(CIMEMLOS == 1 | CIMEMLOS == 2) %>%
+  filter(SMOKE100 == 1 | SMOKE100 == 2) %>%
+  mutate(new_juice = FRUITJU1 - 200) %>%
+  mutate(new_alc = ALCDAY5 - 200) %>%
+  select(ALCDAY5, FRUITJU1, SMOKE100, CIMEMLOS) %>%
+  cor()
+
+
+```
+
+### Q13 Discussion:
+
+Your Q13 discussion goes here. Feel free to add more lines as needed.
+
+To find the basic descriptive statistics for each variable I used the summary and table function. Since CIMEMLOS and SMOKE100 are categorical variables I used table function to find each category count and to calculate the percentage for each binary. The percentage of people who had memory loss in the last year to people who didn't is about 5% of the total population of 227,682. The percentage of people who smoked about 100 cigarettes in their lifetime compared to people who didn't is 43% of the total population of 423,907. The average amount of days that people drank at least once in the last 30 days is 3.48. The average amount of 100% pure juice that people drank in a week is 0.729.
+I then created a correlation matrix to see if there were any correlation between the variables. I observed that smoking contributed to the highest correlation to memory loss compared to the other variables. 
+
+
+### Q14
+
+Finally, run at least 2 different, appropriate regressions predicting the variable you indicated in Q10. These regressions should use different predictor(s). Organize and explain your code within the code chunk using comments. Identify the best model and provide a discussion of your observations in the *Q14 Discussion* section provided below. Be organized and detailed in your discussion.
+
+```{r}
+### Do not edit the following line. It is used by CodeGrade.
+# CG Q14 # 
+
+### TYPE YOUR CODE BELOW ###
+#Creating a logistic regression to predict whether or not a person has memory loss based on ALCDAY5, SMOKE100, and FRUITJU1
+da <- brf %>%
+  filter(ALCDAY5 >= 200 & ALCDAY5 <= 299) %>%
+  filter(FRUITJU1 >= 200 & FRUITJU1 <= 299) %>%
+  filter(CIMEMLOS == 1 | CIMEMLOS == 2) %>%
+  filter(SMOKE100 == 1 | SMOKE100 == 2) %>%
+  mutate(new_juice = FRUITJU1 - 200) %>%
+  mutate(new_alc = ALCDAY5 - 200) %>%
+  as.data.frame()
+
+lg <- da %>%
+  mutate(membin = ifelse(CIMEMLOS == 1, 1, 0)) %>%
+  mutate(smokebin = ifelse(SMOKE100 == 1, 1, 0))
+
+rg1 <- glm(membin ~ smokebin + ALCDAY5 + FRUITJU1, binomial(), data = lg)
+rg3 <- glm(membin ~ smokebin + ALCDAY5, binomial(), data = lg)
+summary(rg1)
+
+#Creating a linear regression 
+rg2 <- lm(ALCDAY5 ~ membin + smokebin + FRUITJU1, data = lg)
+
+summary(rg2)
+
+```
+
+### Q14 Discussion:
+
+Your Q14 discussion goes here. Feel free to add more lines as needed.
+
+To predict whether or not a personal has memory loss from the past year based on out predictors ALCDAY5, SMOKE100, and FRUITJU1 I had to create a logistic regression. First I filtered data that I only needed for analysis. Then I created a code to create a variable I am trying to predict. I then ran the logistic regression using function glm and set the data to "lg" which is the updated data set. I was able to conclude that predictors SMOKE100 and ALCDAY5 were significance as it had a lower p-value than .05. On the other hand FRUITJU1 was not significant in the contribution to memory loss.I tried comparing logistic regressions without the FRUITJU1 variable by the AIC, however, they ended up being roughly the same. 
+For the second regression I used ALCDAY5 as the response variable. I was able to conclude CIMEMLOS and SMOKE100 variables were significant in predicting alcohol consumption. FRUITJU1 on the other hand was not significant.
+
+------------------------------------------------------------------------
+
+# Before submitting to Code Grade:
+
+1)  Clear objects from your environment. Click the broom in the Environment pane in the top right. This will erase any variables (like Q1, Q2) that you've stored.
+
+2)  Rerun all your code. You can click the "Run" option above in this script pane (top right of notebook), then select "Run all". You should have all the variables stored again in the environment pane, and you should see no red error messages in the console below.
+
+3)  **Important**: You only have ONE ATTEMPT to submit Part 2 to the ACTUAL submission link! Ensure you are ready and confident in your work before submitting.
+
+4)  Reread all the directions and questions and make sure you addressed each part carefully, clearly, and thoughtfully.
+
+------------------------------------------------------------------------
+
+This material is for enrolled students' academic use only and protected under U.S. Copyright Laws. This content must not be shared outside the confines of this course, in line with Eastern University's academic integrity policies. Unauthorized reproduction, distribution, or transmission of this material, including but not limited to posting on third-party platforms like GitHub, is strictly prohibited and may lead to disciplinary action. You may not alter or remove any copyright or other notice from copies of any content taken from BrightSpace or Eastern University's website.
+
+© Copyright Notice 2024, Eastern University - All Rights Reserved
